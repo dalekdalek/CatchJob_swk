@@ -13,6 +13,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
 
 
 public class LogInActivity extends SignUpActivity {
@@ -65,8 +69,27 @@ public class LogInActivity extends SignUpActivity {
                             if (task.isSuccessful()) {
                                 // Sign in success, update UI with the signed-in user's information
                                 Log.d(TAG, "Login:success");
-                                Intent intent = new Intent(LogInActivity.this, NextActivity.class);
-                                startActivity(intent);
+                                FirebaseFirestore db=FirebaseFirestore.getInstance();
+                                db.collection("User").document(mAuth.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                        if (task.isSuccessful()) {
+                                            DocumentSnapshot document = task.getResult();
+                                            if (document.exists()) {
+                                                Intent intent = new Intent(LogInActivity.this, timeline.class);
+                                                UserAccount my_account= document.toObject(UserAccount.class);
+                                                intent.putExtra("my_account",my_account);
+                                                startActivity(intent);
+
+                                            } else {
+                                                Log.d(TAG, "No such document");
+                                            }
+                                        } else {
+                                            Log.d(TAG, "get failed with ", task.getException());
+                                        }
+                                    }
+                                });
+
 
                             } else {
                                 // If sign in fails, display a message to the user.

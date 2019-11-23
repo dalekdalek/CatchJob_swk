@@ -1,6 +1,9 @@
 package com.example.catchjob_swk;
 
-public class UserAccount {
+import java.io.Serializable;
+import java.util.ArrayList;
+
+public class UserAccount implements Serializable {
 
     private String Name;
     private String Email;
@@ -8,20 +11,55 @@ public class UserAccount {
     private int Birth_Year;
     private int Birth_Month;
     private int Birth_Day;
+    private boolean isIndividual;
+    private String uid;
 
-    public UserAccount(String Email, String Name, String PhoneNum, int Birth_Year, int Birth_Month, int Birth_Day) {
+    public UserAccount(String name, String email, String phoneNum, int birth_Year, int birth_Month, int birth_Day, boolean isIndividual, String uid) {
+        Name = name;
+        Email = email;
+        PhoneNum = phoneNum;
+        Birth_Year = birth_Year;
+        Birth_Month = birth_Month;
+        Birth_Day = birth_Day;
+        this.isIndividual = isIndividual;
+        this.uid = uid;
+    }
 
+    public String getUid() {
+        return uid;
+    }
+
+
+
+    public ArrayList<String> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(ArrayList<String> followers) {
+        this.followers = followers;
+    }
+
+    private ArrayList<String> followers;
+
+    public UserAccount(){
+
+    }
+    public UserAccount(boolean isIndividual ,String Email, String Name, String PhoneNum, int Birth_Year, int Birth_Month, int Birth_Day) {
+
+        this.isIndividual = isIndividual;
         this.Name = Name;
         this.Email = Email;
         this.PhoneNum = PhoneNum;
         this.Birth_Year = Birth_Year;
         this.Birth_Month = Birth_Month;
         this.Birth_Day = Birth_Day;
-
     }
 
 
     // Getter
+    public boolean getisIndividual() {
+        return this.isIndividual;
+    }
     public String getName() {
         return this.Name;
     }
@@ -59,5 +97,8 @@ public class UserAccount {
     }
     public void setBirthDay(int Birth_Day) {
         this.Birth_Day = Birth_Day;
+    }
+    public void setisIndividual(boolean isIndividual) {
+        this.isIndividual = isIndividual;
     }
 }

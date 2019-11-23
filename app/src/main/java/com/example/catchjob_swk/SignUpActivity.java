@@ -32,6 +32,7 @@ public class SignUpActivity extends AppCompatActivity {
     private int Year; // 생년
     private int Month; // 월
     private int Day; // 일을 다른 메소드에 전달하기 위한 필드 (임시저장용)
+    FirebaseUser User; // 현재 유저정보 가저옴(이 상태에선 이미 Firebase Authentication에 이메일과 비밀번호로 인증된 상태이므로)
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,7 +97,6 @@ public class SignUpActivity extends AppCompatActivity {
         final String Name = ((EditText)findViewById(R.id.edit_name)).getText().toString(); // 입력받은 이름 가져옴
         final String Phone = ((EditText)findViewById(R.id.edit_phone)).getText().toString(); // 입력받은 연락처 가져옴
 
-        final FirebaseUser User = FirebaseAuth.getInstance().getCurrentUser(); // 현재 유저정보 가저옴(이 상태에선 이미 Firebase Authentication에 이메일과 비밀번호로 인증된 상태이므로)
         final FirebaseFirestore DB = FirebaseFirestore.getInstance(); // 데이터 베이스 인스턴스 선언
 
         if(!Email.contains("@") || !Email.contains(".")) {
@@ -114,16 +114,21 @@ public class SignUpActivity extends AppCompatActivity {
                         @Override
                         public void onComplete (@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) { // 이메일과 비밀번호가 잘 등록되면
+                                User = FirebaseAuth.getInstance().getCurrentUser();
                                 Log.d(TAG, "SignUp:success"); // SignUp 성공 로그를 띄우고
-                                UserAccount userAccount = new UserAccount(Email, Name, Phone, Year, Month, Day); // UserAccount 인스턴스 선언 후 초기화
 
-                                if(isIndividual()) // 개인계정이 체크되었다면
-                                {
-                                    DB.collection("IndividualUser").document(User.getUid()).set(userAccount) // DB의 IndividualUser Collection에 등록
+                                UserAccount userAccount = new UserAccount(isIndividual(), Email, Name, Phone, Year, Month, Day); // UserAccount 인스턴스 선언 후 초기화
+
+                                    DB.collection("User").document(User.getUid()).set(userAccount) // DB의 IndividualUser Collection에 등록
                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                 @Override
                                                 public void onSuccess(Void aVoid) {
-                                                    ViewToast("개인 회원가입에 성공하였습니다.");
+                                                    if(isIndividual()){
+                                                        ViewToast("개인 회원가입에 성공하였습니다.");
+                                                    }
+                                                    else{
+                                                        ViewToast("법인 회원가입에 성공하였습니다.");
+                                                    }
                                                     Intent intent = new Intent(SignUpActivity.this, LogInActivity.class);
                                                     startActivity(intent);
                                                     Log.d(TAG, "DocumentSnapshot successfully written!");
@@ -135,26 +140,7 @@ public class SignUpActivity extends AppCompatActivity {
                                                     Log.w(TAG, "Error writing document", e);
                                                 }
                                             });
-                                }
-                                else // 그렇지 않다면(= 법인계정이 체크되었다면)
-                                {
-                                    DB.collection("CorporationUser").document(User.getUid()).set(userAccount)// DB의 CorporationUser Collection에 등록
-                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void aVoid) {
-                                                    ViewToast("법인 회원가입에 성공하였습니다.");
-                                                    Intent intent = new Intent(SignUpActivity.this, LogInActivity.class);
-                                                    startActivity(intent);
-                                                    Log.d(TAG, "DocumentSnapshot successfully written!");
-                                                }
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    Log.w(TAG, "Error writing document", e);
-                                                }
-                                            });
-                                }
+
                             } else { // 실패하면
                                 Log.w(TAG, "SignUp:failure", task.getException()); // SignIp 실패 로그와 실패 이유를 띄움
                                 ViewToast("중복된 이메일입니다.");
